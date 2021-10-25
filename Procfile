@@ -1,1 +1,1 @@
-worker: bin/discord-bot-golang
+worker: nggiadiscord-bot-golang
