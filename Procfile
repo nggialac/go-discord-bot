@@ -1,1 +1,1 @@
-worker: discord-bot-golang
+worker: go run main.go
