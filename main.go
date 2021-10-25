@@ -70,7 +70,9 @@ func main() {
 	// Cleanly close down the Discord session.
 	dg.Close()
 
-	log.Fatal(http.ListenAndServe(":5000", nil))
+	port := os.Getenv("PORT")
+
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
 type Gopher struct {
