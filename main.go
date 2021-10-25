@@ -71,6 +71,9 @@ func main() {
 	dg.Close()
 
 	port := os.Getenv("PORT")
+	if port == "" {
+		port = "5000" // Default port if not specified
+	}
 
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
