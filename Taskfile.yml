@@ -1,0 +1,17 @@
+version: "3"
+
+tasks:
+    build:
+        desc: Build the app
+        cmds:
+        - GOFLAGS=-mod=mod go build -o discord-bot-golang main.go 
+
+    run: 
+        desc: Run the app
+        cmds:
+        - GOFLAGS=-mod=mod go run main.go -t ODg2NTU0NzExODEyMDg3ODI4.YT3Sag.Q-SNKc4RZz-tbhM-QmJxxVnLUeQ
+
+    bot:
+        desc: Execute the bot
+        cmds:
+        - ./discord-bot-golang -t ODg2NTU0NzExODEyMDg3ODI4.YT3Sag.Q-SNKc4RZz-tbhM-QmJxxVnLUeQ
