@@ -35,7 +35,7 @@ type Image struct {
 }
 
 func main() {
-	port := os.Getenv("PORT")
+	// port := os.Getenv("PORT")
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
@@ -68,9 +68,9 @@ func main() {
 	<-sc
 
 	// Cleanly close down the Discord session.
-	// dg.Close()
+	dg.Close()
 
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServe(":5000", nil))
 }
 
 type Gopher struct {
