@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"html"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -37,9 +36,9 @@ type Image struct {
 func main() {
 	// port := os.Getenv("PORT")
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
-	})
+	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	// 	fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+	// })
 
 	// Create a new Discord session using the provided bot token.
 	dg, err := discordgo.New("Bot " + os.Getenv("BOT_TOKEN"))
@@ -70,12 +69,12 @@ func main() {
 	// Cleanly close down the Discord session.
 	dg.Close()
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "5000" // Default port if not specified
-	}
+	// port := os.Getenv("PORT")
+	// if port == "" {
+	// 	port = "5000" // Default port if not specified
+	// }
 
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	// log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
 type Gopher struct {
