@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/joho/godotenv"
 )
 
 // Bot parameters
@@ -26,7 +27,17 @@ func init() { flag.Parse() }
 
 func init() {
 	var err error
-	s, err = discordgo.New("Bot " + *BotToken)
+	err = godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	var token string = os.Getenv("BOT_TOKEN")
+	if token == "" {
+		token = *BotToken
+	}
+
+	s, err = discordgo.New("Bot " + token)
 	if err != nil {
 		log.Fatalf("Invalid bot parameters: %v", err)
 	}
