@@ -9,9 +9,9 @@ tasks:
     run: 
         desc: Run the app
         cmds:
-        - GOFLAGS=-mod=mod go run main.go -t ODg2NTU0NzExODEyMDg3ODI4.YT3Sag.Q-SNKc4RZz-tbhM-QmJxxVnLUeQ
+        - GOFLAGS=-mod=mod go run main.go -t 
 
     bot:
         desc: Execute the bot
         cmds:
-        - ./discord-bot-golang -t ODg2NTU0NzExODEyMDg3ODI4.YT3Sag.Q-SNKc4RZz-tbhM-QmJxxVnLUeQ
+        - ./discord-bot-golang -t 
