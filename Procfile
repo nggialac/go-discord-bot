@@ -1,1 +1,0 @@
-worker: nggiadiscord-bot-golang

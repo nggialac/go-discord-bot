@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"strings"
+	"syscall"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -23,7 +23,7 @@ var (
 
 var s *discordgo.Session
 
-func init() { flag.Parse() }
+// func init() { flag.Parse() }
 
 func init() {
 	var err error
@@ -32,7 +32,7 @@ func init() {
 		log.Fatal("Error loading .env file")
 	}
 
-	var token string = os.Getenv("BOT_TOKEN")
+	var token string = os.Getenv("LOCAL_BOT_TOKEN")
 	if token == "" {
 		token = *BotToken
 	}
@@ -44,18 +44,10 @@ func init() {
 }
 
 var (
-	integerOptionMinValue          = 1.0
 	dmPermission                   = false
 	defaultMemberPermissions int64 = discordgo.PermissionManageServer
 
 	commands = []*discordgo.ApplicationCommand{
-		{
-			Name: "basic-command",
-			// All commands and options must have a description
-			// Commands/options without description will fail the registration
-			// of the command.
-			Description: "Basic command",
-		},
 		{
 			Name:                     "permission-overview",
 			Description:              "Command for demonstration of default command permissions",
@@ -63,111 +55,46 @@ var (
 			DMPermission:             &dmPermission,
 		},
 		{
-			Name:        "basic-command-with-files",
-			Description: "Basic command with files",
+			Name:        "random-image",
+			Description: "get random image",
 		},
 		{
-			Name:        "lac-chatgpt",
-			Description: "chatgpt with beta version",
+			Name:        "random-anime-image",
+			Description: "get random anime image",
 		},
 		{
-			Name:        "localized-command",
-			Description: "Localized command. Description and name may vary depending on the Language setting",
-			NameLocalizations: &map[discordgo.Locale]string{
-				discordgo.ChineseCN: "本地化的命令",
-			},
-			DescriptionLocalizations: &map[discordgo.Locale]string{
-				discordgo.ChineseCN: "这是一个本地化的命令",
-			},
+			Name:        "current-weather",
+			Description: "get HCM city weather",
 			Options: []*discordgo.ApplicationCommandOption{
-				{
-					Name:        "localized-option",
-					Description: "Localized option. Description and name may vary depending on the Language setting",
-					NameLocalizations: map[discordgo.Locale]string{
-						discordgo.ChineseCN: "一个本地化的选项",
-					},
-					DescriptionLocalizations: map[discordgo.Locale]string{
-						discordgo.ChineseCN: "这是一个本地化的选项",
-					},
-					Type: discordgo.ApplicationCommandOptionInteger,
-					Choices: []*discordgo.ApplicationCommandOptionChoice{
-						{
-							Name: "First",
-							NameLocalizations: map[discordgo.Locale]string{
-								discordgo.ChineseCN: "一的",
-							},
-							Value: 1,
-						},
-						{
-							Name: "Second",
-							NameLocalizations: map[discordgo.Locale]string{
-								discordgo.ChineseCN: "二的",
-							},
-							Value: 2,
-						},
-					},
-				},
-			},
-		},
-		{
-			Name:        "options",
-			Description: "Command for demonstrating options",
-			Options: []*discordgo.ApplicationCommandOption{
-
 				{
 					Type:        discordgo.ApplicationCommandOptionString,
-					Name:        "string-option",
-					Description: "String option",
+					Name:        "city",
+					Description: "input city name",
 					Required:    true,
 				},
+			},
+		},
+		{
+			Name:        "random-integer",
+			Description: "get random integer",
+			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Type:        discordgo.ApplicationCommandOptionInteger,
-					Name:        "integer-option",
-					Description: "Integer option",
-					MinValue:    &integerOptionMinValue,
-					MaxValue:    10,
+					Name:        "number",
+					Description: "input max number you want to random",
 					Required:    true,
 				},
+			},
+		},
+		{
+			Name:        "lol-info",
+			Description: "get lol info by name",
+			Options: []*discordgo.ApplicationCommandOption{
 				{
-					Type:        discordgo.ApplicationCommandOptionNumber,
-					Name:        "number-option",
-					Description: "Float option",
-					MaxValue:    10.1,
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "name",
+					Description: "input lol name",
 					Required:    true,
-				},
-				{
-					Type:        discordgo.ApplicationCommandOptionBoolean,
-					Name:        "bool-option",
-					Description: "Boolean option",
-					Required:    true,
-				},
-
-				// Required options must be listed first since optional parameters
-				// always come after when they're used.
-				// The same concept applies to Discord's Slash-commands API
-
-				{
-					Type:        discordgo.ApplicationCommandOptionChannel,
-					Name:        "channel-option",
-					Description: "Channel option",
-					// Channel type mask
-					ChannelTypes: []discordgo.ChannelType{
-						discordgo.ChannelTypeGuildText,
-						discordgo.ChannelTypeGuildVoice,
-					},
-					Required: false,
-				},
-				{
-					Type:        discordgo.ApplicationCommandOptionUser,
-					Name:        "user-option",
-					Description: "User option",
-					Required:    false,
-				},
-				{
-					Type:        discordgo.ApplicationCommandOptionRole,
-					Name:        "role-option",
-					Description: "Role option",
-					Required:    false,
 				},
 			},
 		},
@@ -237,113 +164,11 @@ var (
 	}
 
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-		"basic-command": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: "Hey there! Congratulations, you just executed your first slash command\n !huyu\n, !hungu\n, !nhanu\n, !minhu",
-				},
-			})
-		},
-		"basic-command-with-files": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: "Hey there! Congratulations, you just executed your first slash command with a file in the response",
-					Files: []*discordgo.File{
-						{
-							ContentType: "text/plain",
-							Name:        "test.txt",
-							Reader:      strings.NewReader("Hello Discord!!"),
-						},
-					},
-				},
-			})
-		},
-		"localized-command": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			responses := map[discordgo.Locale]string{
-				discordgo.ChineseCN: "你好！ 这是一个本地化的命令",
-			}
-			response := "Hi! This is a localized message"
-			if r, ok := responses[i.Locale]; ok {
-				response = r
-			}
-			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: response,
-				},
-			})
-			if err != nil {
-				panic(err)
-			}
-		},
-		"options": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			// Access options in the order provided by the user.
-			options := i.ApplicationCommandData().Options
-
-			// Or convert the slice into a map
-			optionMap := make(map[string]*discordgo.ApplicationCommandInteractionDataOption, len(options))
-			for _, opt := range options {
-				optionMap[opt.Name] = opt
-			}
-
-			// This example stores the provided arguments in an []interface{}
-			// which will be used to format the bot's response
-			margs := make([]interface{}, 0, len(options))
-			msgformat := "You learned how to use command options! " +
-				"Take a look at the value(s) you entered:\n"
-
-			// Get the value from the option map.
-			// When the option exists, ok = true
-			if option, ok := optionMap["string-option"]; ok {
-				// Option values must be type asserted from interface{}.
-				// Discordgo provides utility functions to make this simple.
-				margs = append(margs, option.StringValue())
-				msgformat += "> string-option: %s\n"
-			}
-
-			if opt, ok := optionMap["integer-option"]; ok {
-				margs = append(margs, opt.IntValue())
-				msgformat += "> integer-option: %d\n"
-			}
-
-			if opt, ok := optionMap["number-option"]; ok {
-				margs = append(margs, opt.FloatValue())
-				msgformat += "> number-option: %f\n"
-			}
-
-			if opt, ok := optionMap["bool-option"]; ok {
-				margs = append(margs, opt.BoolValue())
-				msgformat += "> bool-option: %v\n"
-			}
-
-			if opt, ok := optionMap["channel-option"]; ok {
-				margs = append(margs, opt.ChannelValue(nil).ID)
-				msgformat += "> channel-option: <#%s>\n"
-			}
-
-			if opt, ok := optionMap["user-option"]; ok {
-				margs = append(margs, opt.UserValue(nil).ID)
-				msgformat += "> user-option: <@%s>\n"
-			}
-
-			if opt, ok := optionMap["role-option"]; ok {
-				margs = append(margs, opt.RoleValue(nil, "").ID)
-				msgformat += "> role-option: <@&%s>\n"
-			}
-
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				// Ignore type for now, they will be discussed in "responses"
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: fmt.Sprintf(
-						msgformat,
-						margs...,
-					),
-				},
-			})
-		},
+		"random-image":       RandomImage(),
+		"random-anime-image": RandomAnimeImage(),
+		"current-weather":    TodayWeather(),
+		"random-integer":     RandomInteger(),
+		"lol-info":           LOLInfo(),
 		"permission-overview": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			perms, err := s.ApplicationCommandPermissions(s.State.User.ID, i.GuildID, i.ApplicationCommandData().ID)
 
@@ -577,11 +402,10 @@ func main() {
 		}
 		registeredCommands[i] = cmd
 	}
-
 	defer s.Close()
 
 	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt)
+	signal.Notify(stop, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	log.Println("Press Ctrl+C to exit")
 	<-stop
 

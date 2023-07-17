@@ -14,6 +14,7 @@ WORKDIR /app
 
 COPY --from=builder /go/src/go-discord-bot /app
 COPY .env /app
+COPY ./assets /app
 
 # EXPOSE
 
