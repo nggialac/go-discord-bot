@@ -6,9 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
-
-	"github.com/tidwall/gjson"
 )
 
 var (
@@ -46,21 +43,6 @@ func ClientRequest(requestURL string, header map[string][]string, params map[str
 		log.Printf("client: could not read response body: %s\n", err)
 	}
 	return resBody
-}
-
-type AnimeImageReponse struct {
-	URL string `json:"url"`
-}
-
-func GetAnimeImage() string {
-	data := ClientRequest(ANIME_REQUEST_URL, nil, nil)
-
-	animeImageReponse := &AnimeImageReponse{}
-	err := json.Unmarshal(data, animeImageReponse)
-	if err != nil {
-		log.Print("anime image response error: ", err)
-	}
-	return animeImageReponse.URL
 }
 
 type CurrentWeatherResponse struct {
@@ -125,26 +107,4 @@ func GetCurrentWeather(city string) *CurrentWeatherResponse {
 		log.Print("current weather response error: ", err)
 	}
 	return currentWeatherResponse
-}
-
-type PokemonInfo struct {
-	Name     string `json:"name"`
-	ImageUrl string `json:"image_url"`
-}
-
-func GetPokemonImage(id int) *PokemonInfo {
-	pokeID := strconv.Itoa(id)
-	data := ClientRequest(POKEMON_REQUEST_URL+pokeID, nil, nil)
-
-	byteData := string(data)
-
-	name := gjson.Get(byteData, "name")
-	image := gjson.Get(byteData, "sprites.other.official-artwork.front_default")
-
-	pokemonInfo := &PokemonInfo{
-		Name:     name.Str,
-		ImageUrl: image.Str,
-	}
-
-	return pokemonInfo
 }

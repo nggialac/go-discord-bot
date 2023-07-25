@@ -69,14 +69,12 @@ func TodayWeather() func(*discordgo.Session, *discordgo.InteractionCreate) {
 
 		c := GetCurrentWeather(city)
 		icon := "https://" + c.Current.Condition.Icon[2:]
-		log.Print("Icon: ", icon)
 
 		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content: "Current weather: ",
 				Embeds: []*discordgo.MessageEmbed{
-					// {Image: &discordgo.MessageEmbedImage{URL: c.Current.Condition.Icon}},
 					{
 						Title:       c.Location.Name + ", " + c.Location.Country,
 						Description: "CONDITION: " + c.Current.Condition.Text,

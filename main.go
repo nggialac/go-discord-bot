@@ -12,6 +12,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/joho/godotenv"
+	"github.com/robfig/cron/v3"
 )
 
 // Bot parameters
@@ -19,11 +20,12 @@ var (
 	GuildID        = flag.String("guild", "", "Test guild ID. If not passed - bot registers commands globally")
 	BotToken       = flag.String("token", "", "Bot access token")
 	RemoveCommands = flag.Bool("rmcmd", true, "Remove all commands after shutdowning or not")
+	channelID      = flag.String("channel", "", "Channel ID")
 )
 
 var s *discordgo.Session
 
-// func init() { flag.Parse() }
+func init() { flag.Parse() }
 
 func init() {
 	var err error
@@ -32,15 +34,19 @@ func init() {
 		log.Fatal("Error loading .env file")
 	}
 
-	var token string = os.Getenv("LOCAL_BOT_TOKEN")
-	if token == "" {
-		token = *BotToken
+	if *BotToken == "" {
+		*BotToken = os.Getenv("BOT_TOKEN")
 	}
 
-	s, err = discordgo.New("Bot " + token)
+	if *channelID == "" {
+		*channelID = os.Getenv("DISCORD_CRON_CHANNEL_ID")
+	}
+
+	s, err = discordgo.New("Bot " + *BotToken)
 	if err != nil {
 		log.Fatalf("Invalid bot parameters: %v", err)
 	}
+
 }
 
 var (
@@ -94,6 +100,42 @@ var (
 					Type:        discordgo.ApplicationCommandOptionString,
 					Name:        "name",
 					Description: "input lol name",
+					Required:    true,
+				},
+			},
+		},
+		{
+			Name:        "lol-history",
+			Description: "get lol history matches by name",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "name",
+					Description: "input lol name",
+					Required:    true,
+				},
+			},
+		},
+		{
+			Name:        "pubg-info",
+			Description: "get pubg info by name",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "name",
+					Description: "input pubg steam name",
+					Required:    true,
+				},
+			},
+		},
+		{
+			Name:        "av-info",
+			Description: "get av info by name",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "name",
+					Description: "input av name",
 					Required:    true,
 				},
 			},
@@ -168,7 +210,10 @@ var (
 		"random-anime-image": RandomAnimeImage(),
 		"current-weather":    TodayWeather(),
 		"random-integer":     RandomInteger(),
-		"lol-info":           LOLInfo(),
+		"lol-info":           LoLInfo(),
+		"lol-history":        LoLMatches(),
+		"pubg-info":          GetPUBGStats(),
+		"av-info":            GetActress(),
 		"permission-overview": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			perms, err := s.ApplicationCommandPermissions(s.State.User.ID, i.GuildID, i.ApplicationCommandData().ID)
 
@@ -382,6 +427,14 @@ func init() {
 			h(s, i)
 		}
 	})
+
+	//Cron
+	c := cron.New()
+	c.AddFunc("@every 4h0m0s", func() { HackerNews() })
+	c.AddFunc("@every 2h0m0s", func() { CronGameNews() })
+	c.AddFunc("@every 12h0m0s", func() { CronAvRecommend() })
+	c.Start()
+
 }
 
 func main() {
@@ -411,14 +464,14 @@ func main() {
 
 	if *RemoveCommands {
 		log.Println("Removing commands...")
-		// // We need to fetch the commands, since deleting requires the command ID.
-		// // We are doing this from the returned commands on line 375, because using
-		// // this will delete all the commands, which might not be desirable, so we
-		// // are deleting only the commands that we added.
-		// registeredCommands, err := s.ApplicationCommands(s.State.User.ID, *GuildID)
-		// if err != nil {
-		// 	log.Fatalf("Could not fetch registered commands: %v", err)
-		// }
+		// We need to fetch the commands, since deleting requires the command ID.
+		// We are doing this from the returned commands on line 375, because using
+		// this will delete all the commands, which might not be desirable, so we
+		// are deleting only the commands that we added.
+		registeredCommands, err := s.ApplicationCommands(s.State.User.ID, *GuildID)
+		if err != nil {
+			log.Fatalf("Could not fetch registered commands: %v", err)
+		}
 
 		for _, v := range registeredCommands {
 			err := s.ApplicationCommandDelete(s.State.User.ID, *GuildID, v.ID)
@@ -427,6 +480,5 @@ func main() {
 			}
 		}
 	}
-
 	log.Println("Gracefully shutting down.")
 }

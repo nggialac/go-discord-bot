@@ -19,3 +19,9 @@ func GetImageFromFilePath(filePath string) ([]byte, error) {
 	}
 	return file, err
 }
+
+func ConvertUnixTime(unixTime int64) string {
+	tm := time.UnixMilli(unixTime)
+	unitTimeInRFC3339 := tm.Format(time.RFC3339)
+	return unitTimeInRFC3339
+}
