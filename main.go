@@ -23,32 +23,6 @@ var (
 	channelID      = flag.String("channel", "", "Channel ID")
 )
 
-var s *discordgo.Session
-
-func init() { flag.Parse() }
-
-func init() {
-	var err error
-	err = godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
-	if *BotToken == "" {
-		*BotToken = os.Getenv("BOT_TOKEN")
-	}
-
-	if *channelID == "" {
-		*channelID = os.Getenv("DISCORD_CRON_CHANNEL_ID")
-	}
-
-	s, err = discordgo.New("Bot " + *BotToken)
-	if err != nil {
-		log.Fatalf("Invalid bot parameters: %v", err)
-	}
-
-}
-
 var (
 	dmPermission                   = false
 	defaultMemberPermissions int64 = discordgo.PermissionManageServer
@@ -421,6 +395,29 @@ var (
 	}
 )
 
+var s *discordgo.Session
+
+func init() { flag.Parse() }
+
+func init() {
+	var err error
+	err = godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	if *BotToken == "" {
+		*BotToken = os.Getenv("BOT_TOKEN")
+	}
+	if *channelID == "" {
+		*channelID = os.Getenv("DISCORD_CRON_CHANNEL_ID")
+	}
+
+	s, err = discordgo.New("Bot " + *BotToken)
+	if err != nil {
+		log.Fatalf("Invalid bot parameters: %v", err)
+	}
+}
+
 func init() {
 	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if h, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
@@ -430,11 +427,10 @@ func init() {
 
 	//Cron
 	c := cron.New()
-	c.AddFunc("@every 4h0m0s", func() { HackerNews() })
-	c.AddFunc("@every 2h0m0s", func() { CronGameNews() })
+	c.AddFunc("@every 12h0m0s", func() { HackerNews() })
+	c.AddFunc("@every 12h0m0s", func() { CronGameNews() })
 	c.AddFunc("@every 12h0m0s", func() { CronAvRecommend() })
 	c.Start()
-
 }
 
 func main() {
@@ -457,6 +453,7 @@ func main() {
 	}
 	defer s.Close()
 
+	//bot stop processing
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	log.Println("Press Ctrl+C to exit")
@@ -481,4 +478,10 @@ func main() {
 		}
 	}
 	log.Println("Gracefully shutting down.")
+}
+
+func HandleMessage(bot *discordgo.Session, message *discordgo.MessageCreate) {
+	if message.Author.Bot || message.Author.ID == bot.State.User.ID {
+		return
+	}
 }

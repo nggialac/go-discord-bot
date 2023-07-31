@@ -94,7 +94,7 @@ var (
 	newsAPIParams = map[string]string{
 		"page":     "1",
 		"pageSize": "1",
-		"q":        "game",
+		"q":        "football",
 		"sortBy":   "publishedAt",
 	}
 )
